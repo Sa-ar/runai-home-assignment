@@ -9,8 +9,9 @@ import Header from "./components/Header";
 import Root from './routes/root';
 import Employees from "./routes/employees";
 import Departments from "./routes/departments";
-import './App.css';
 import ErrorPage from "./routes/error-page";
+import SideNav from "./components/SideNav";
+import './App.css';
 
 dbInit();
 
@@ -42,6 +43,7 @@ function App() {
     <div className="App">
       <CompanyContext.Provider value={value}>
         <Header />
+        <SideNav />
         <RouterProvider router={router} />
       </CompanyContext.Provider>
     </div>
