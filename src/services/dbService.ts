@@ -1,83 +1,51 @@
 import isEmpty from 'lodash/isEmpty';
-import last from 'lodash/last';
 
-export enum dataTypesEnum { company = "company", employee = "employee", department = "department" };
-const dataTypes: {
-  [key in dataTypesEnum]: {
-    prefix: string;
-    regex: RegExp;
-  }
-} = {
-  company: {
-    prefix: "company-",
-    regex: new RegExp(/^company-/),
-  },
-  employee: {
-    prefix: "employee-",
-    regex: new RegExp(/^employee-/),
-  },
-  department: {
-    prefix: "department-",
-    regex: new RegExp(/^department-/),
-  }
+type id = string | number;
+export type item = {
+  id: id;
+  name: string;
+  belongsTo?: id;
 }
+type itemValues = Omit<item, "id">;
+export enum tablesEnum { company = "company", employee = "employee", department = "department" };
 
-
-export function getItemById(id: string, type: dataTypesEnum) {
-  const value = localStorage.getItem(`${dataTypes[type].prefix}${id}`);
-  if (!value) return;
-
-  const item = {
-    id,
-    ...parseValue(value)
-  };
+export function getItemById(id: id, type: tablesEnum) {
+  const item = getAll(type).find(item => item.id === id);
 
   return item;
 }
 
-export function addItem({ name, belongsTo }: { name: string, belongsTo?: string }, type: dataTypesEnum) {
-  const id = getLastId(type) + 1;
-  localStorage.setItem(`${dataTypes[type].prefix}${id}`, stringifyValue({ name, belongsTo }));
+export function addItem({ name, belongsTo }: itemValues, type: tablesEnum) {
+  const newItem = {
+    id: getNextId(type),
+    name,
+    belongsTo
+  }
+  const newTable = [
+    ...getAll(type),
+    newItem
+  ];
 
-  return { id, name };
+  localStorage.setItem(type, JSON.stringify(newTable));
+
+  return newItem;
 }
 
-function stringifyValue({ name, belongsTo }: { name: string, belongsTo?: string }) {
-  return JSON.stringify({ name, belongsTo });
+export function getAll(type: tablesEnum) {
+  const table = localStorage.getItem(tablesEnum[type]);
+  if (!table || isEmpty(table)) return [];
+
+  return JSON.parse(table) as item[];
 }
 
-function parseValue(value: string) {
-  return JSON.parse(value);
+export function update(updatedInfo: item, type: tablesEnum) {
+  const table = getAll(type).map(item => item.id === updatedInfo.id ? updatedInfo : item);
+
+  localStorage.setItem(type, JSON.stringify(table));
+
+  return updatedInfo;
 }
 
-export function update({ id, name, belongsTo }: { id: string | number, name: string, belongsTo?: string }, type: dataTypesEnum) {
-  localStorage.setItem(`${dataTypes[type].prefix}${id}`, stringifyValue({ name, belongsTo }));
-
-  return { id, name };
-}
-
-export function getAllIds(type: dataTypesEnum) {
-  if (!localStorage) return [];
-
-  const ids = Object.keys(localStorage)
-    .filter(key => key.match(dataTypes[type].regex))
-    .map(id => id.replace(dataTypes[type].regex, ''));
-
-  return ids;
-}
-
-export function getLastId(type: dataTypesEnum) {
-  const ids = getAllIds(type);
-  if (isEmpty(ids)) return 0;
-
-  const lastId = last(ids);
-
-  return Number(lastId);
-}
-
-export function getAll(type: dataTypesEnum) {
-  const ids = getAllIds(type);
-  const items = ids.map(id => getItemById(id, type));
-
-  return items;
+function getNextId(type: tablesEnum) {
+  return getAll(type).length;
 }
