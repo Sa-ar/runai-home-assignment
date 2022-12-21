@@ -10,6 +10,7 @@ import Root from './routes/root';
 import Employees from "./routes/employees";
 import Departments from "./routes/departments";
 import './App.css';
+import ErrorPage from "./routes/error-page";
 
 dbInit();
 
@@ -17,6 +18,7 @@ const routes = [
   {
     path: "/",
     element: <Root />,
+    errorElement: <ErrorPage />,
   },
   {
     path: "/employees",
