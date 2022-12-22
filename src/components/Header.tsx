@@ -1,15 +1,22 @@
 
-import { useContext, useMemo } from 'react';
-import { CompanyContext } from '../context/companyContext';
-import { getAll, tablesEnum } from '../services/dbService';
+import { useMemo } from 'react';
+
+import { ETables, getAllItems } from '../services/dbService';
+
+function setSelectedCompany(companyId: string) {
+  localStorage.setItem("selectedCompany", companyId);
+}
+
+export function getSelectedCompany() {
+  return localStorage.getItem("selectedCompany");
+}
 
 function Header() {
-  const { setCompany } = useContext(CompanyContext)
-  const companies = useMemo(() => getAll(tablesEnum.company), [])
+  const companies = useMemo(() => getAllItems(ETables.companies), []);
 
   return (
     <header>
-      <select onChange={e => setCompany(e.currentTarget.value)}>
+      <select onChange={e => setSelectedCompany(e.currentTarget.value)} value={getSelectedCompany() || ""}>
         <option value="">Choose a company</option>
         {companies.map(company => (
           <option key={company.id} value={company.id.toString()}>{company.name}</option>
